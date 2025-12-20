@@ -1,0 +1,2 @@
+# marketing_analytics_ecommerce_project
+Marketing data modeling and integration
