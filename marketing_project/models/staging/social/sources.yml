@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: social_raw
+    database: jalapeno_joins
+    schema: s_nishantsingh
+    tables:
+      - name: meta_mx
+      - name: meta_non_mx
+      - name: pinterest
+      - name: reddit
