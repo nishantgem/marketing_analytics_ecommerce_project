@@ -17,11 +17,9 @@ LTV (Customer Lifetime Value) modeling
 
 Reusable SQL/dbt models for analytics engineering
 
-├── dbt/
-├── notebooks/
-├── scripts/
-├── dashboards/
-└── data/
-
-
 Python notebooks for exploratory analysis and forecasting
+
+
+
+
+
