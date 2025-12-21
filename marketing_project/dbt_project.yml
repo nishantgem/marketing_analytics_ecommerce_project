@@ -2,4 +2,4 @@ name: 'marketing_project'
 version: '1.0.0'
 config-version: 2
 profile: 'default'
-model-paths: ["models"]
+model-paths: ["marketing_project/models"]
