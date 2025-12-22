@@ -3,117 +3,170 @@
 select
     date,
     campaign_id,
+    campaign_name,
 
-    -- Total Spend (USD)
-    coalesce(meta_mx_cost_usd, 0)
-    + coalesce(meta_non_mx_cost_usd, 0)
-    + coalesce(pinterest_cost_usd, 0)
-    + coalesce(reddit_cost_usd, 0) as total_spend_usd,
+    -- Platform-level fields (kept for Tableau)
+    meta_mx_cost_usd,
+    meta_non_mx_cost_usd,
+    pinterest_cost_usd,
+    reddit_cost_usd,
 
-    -- Total Impressions
-    coalesce(meta_mx_impressions, 0)
-    + coalesce(meta_non_mx_impressions, 0)
-    + coalesce(pinterest_impressions, 0)
-    + coalesce(reddit_impressions, 0) as total_impressions,
+    meta_mx_impressions,
+    meta_non_mx_impressions,
+    pinterest_impressions,
+    reddit_impressions,
 
-    -- Total Clicks
-    coalesce(meta_mx_clicks, 0)
-    + coalesce(meta_non_mx_clicks, 0)
-    + coalesce(pinterest_clicks, 0)
-    + coalesce(reddit_clicks, 0) as total_clicks,
+    meta_mx_clicks,
+    meta_non_mx_clicks,
+    pinterest_clicks,
+    reddit_clicks,
 
-    -- Total Conversions
-    coalesce(meta_mx_conversions, 0)
-    + coalesce(meta_non_mx_conversions, 0)
-    + coalesce(pinterest_conversions, 0)
-    + coalesce(null, 0) as total_conversions,
+    meta_mx_conversions,
+    meta_non_mx_conversions,
+    pinterest_conversions,
+    reddit_conversions,
 
-    -- Total Revenue (USD)
-    coalesce(meta_mx_revenue_usd, 0)
-    + coalesce(meta_non_mx_revenue_usd, 0)
-    + coalesce(pinterest_revenue_usd, 0)
-    + coalesce(null, 0) as total_revenue_usd,
+    meta_mx_revenue_usd,
+    meta_non_mx_revenue_usd,
+    pinterest_revenue_usd,
+    reddit_revenue_usd,
 
-    -- ROAS (Revenue / Spend)
+    --------------------------------------------------------------------
+    -- Aggregated metrics using the macro
+    --------------------------------------------------------------------
+
+    {{ safe_sum([
+        'meta_mx_cost_usd',
+        'meta_non_mx_cost_usd',
+        'pinterest_cost_usd',
+        'reddit_cost_usd'
+    ]) }} as total_spend_usd,
+
+    {{ safe_sum([
+        'meta_mx_impressions',
+        'meta_non_mx_impressions',
+        'pinterest_impressions',
+        'reddit_impressions'
+    ]) }} as total_impressions,
+
+    {{ safe_sum([
+        'meta_mx_clicks',
+        'meta_non_mx_clicks',
+        'pinterest_clicks',
+        'reddit_clicks'
+    ]) }} as total_clicks,
+
+    {{ safe_sum([
+        'meta_mx_conversions',
+        'meta_non_mx_conversions',
+        'pinterest_conversions',
+        'reddit_conversions'
+    ]) }} as total_conversions,
+
+    {{ safe_sum([
+        'meta_mx_revenue_usd',
+        'meta_non_mx_revenue_usd',
+        'pinterest_revenue_usd',
+        'reddit_revenue_usd'
+    ]) }} as total_revenue_usd,
+
+    -- ROAS
     case 
-        when (
-            coalesce(meta_mx_cost_usd, 0)
-            + coalesce(meta_non_mx_cost_usd, 0)
-            + coalesce(pinterest_cost_usd, 0)
-            + coalesce(reddit_cost_usd, 0)
-        ) = 0 then null
+        when {{ safe_sum([
+            'meta_mx_cost_usd',
+            'meta_non_mx_cost_usd',
+            'pinterest_cost_usd',
+            'reddit_cost_usd'
+        ]) }} = 0 then null
         else (
-            coalesce(meta_mx_revenue_usd, 0)
-            + coalesce(meta_non_mx_revenue_usd, 0)
-            + coalesce(pinterest_revenue_usd, 0)
+            {{ safe_sum([
+                'meta_mx_revenue_usd',
+                'meta_non_mx_revenue_usd',
+                'pinterest_revenue_usd',
+                'reddit_revenue_usd'
+            ]) }}
         ) / (
-            coalesce(meta_mx_cost_usd, 0)
-            + coalesce(meta_non_mx_cost_usd, 0)
-            + coalesce(pinterest_cost_usd, 0)
-            + coalesce(reddit_cost_usd, 0)
+            {{ safe_sum([
+                'meta_mx_cost_usd',
+                'meta_non_mx_cost_usd',
+                'pinterest_cost_usd',
+                'reddit_cost_usd'
+            ]) }}
         )
     end as roas_usd,
 
-    -- CTR (Clicks / Impressions)
+    -- CTR
     case 
-        when (
-            coalesce(meta_mx_impressions, 0)
-            + coalesce(meta_non_mx_impressions, 0)
-            + coalesce(pinterest_impressions, 0)
-            + coalesce(reddit_impressions, 0)
-        ) = 0 then null
+        when {{ safe_sum([
+            'meta_mx_impressions',
+            'meta_non_mx_impressions',
+            'pinterest_impressions',
+            'reddit_impressions'
+        ]) }} = 0 then null
         else (
-            coalesce(meta_mx_clicks, 0)
-            + coalesce(meta_non_mx_clicks, 0)
-            + coalesce(pinterest_clicks, 0)
-            + coalesce(reddit_clicks, 0)
-        ) * 1.0 / (
-            coalesce(meta_mx_impressions, 0)
-            + coalesce(meta_non_mx_impressions, 0)
-            + coalesce(pinterest_impressions, 0)
-            + coalesce(reddit_impressions, 0)
+            {{ safe_sum([
+                'meta_mx_clicks',
+                'meta_non_mx_clicks',
+                'pinterest_clicks',
+                'reddit_clicks'
+            ]) }} * 1.0
+        ) / (
+            {{ safe_sum([
+                'meta_mx_impressions',
+                'meta_non_mx_impressions',
+                'pinterest_impressions',
+                'reddit_impressions'
+            ]) }}
         )
     end as ctr,
 
-    -- CPC (Cost / Clicks)
+    -- CPC
     case 
-        when (
-            coalesce(meta_mx_clicks, 0)
-            + coalesce(meta_non_mx_clicks, 0)
-            + coalesce(pinterest_clicks, 0)
-            + coalesce(reddit_clicks, 0)
-        ) = 0 then null
+        when {{ safe_sum([
+            'meta_mx_clicks',
+            'meta_non_mx_clicks',
+            'pinterest_clicks',
+            'reddit_clicks'
+        ]) }} = 0 then null
         else (
-            coalesce(meta_mx_cost_usd, 0)
-            + coalesce(meta_non_mx_cost_usd, 0)
-            + coalesce(pinterest_cost_usd, 0)
-            + coalesce(reddit_cost_usd, 0)
+            {{ safe_sum([
+                'meta_mx_cost_usd',
+                'meta_non_mx_cost_usd',
+                'pinterest_cost_usd',
+                'reddit_cost_usd'
+            ]) }}
         ) / (
-            coalesce(meta_mx_clicks, 0)
-            + coalesce(meta_non_mx_clicks, 0)
-            + coalesce(pinterest_clicks, 0)
-            + coalesce(reddit_clicks, 0)
+            {{ safe_sum([
+                'meta_mx_clicks',
+                'meta_non_mx_clicks',
+                'pinterest_clicks',
+                'reddit_clicks'
+            ]) }}
         )
     end as cpc_usd,
 
-    -- CPM (Cost per 1000 impressions)
+    -- CPM
     case 
-        when (
-            coalesce(meta_mx_impressions, 0)
-            + coalesce(meta_non_mx_impressions, 0)
-            + coalesce(pinterest_impressions, 0)
-            + coalesce(reddit_impressions, 0)
-        ) = 0 then null
+        when {{ safe_sum([
+            'meta_mx_impressions',
+            'meta_non_mx_impressions',
+            'pinterest_impressions',
+            'reddit_impressions'
+        ]) }} = 0 then null
         else (
-            coalesce(meta_mx_cost_usd, 0)
-            + coalesce(meta_non_mx_cost_usd, 0)
-            + coalesce(pinterest_cost_usd, 0)
-            + coalesce(reddit_cost_usd, 0)
-        ) * 1000.0 / (
-            coalesce(meta_mx_impressions, 0)
-            + coalesce(meta_non_mx_impressions, 0)
-            + coalesce(pinterest_impressions, 0)
-            + coalesce(reddit_impressions, 0)
+            {{ safe_sum([
+                'meta_mx_cost_usd',
+                'meta_non_mx_cost_usd',
+                'pinterest_cost_usd',
+                'reddit_cost_usd'
+            ]) }} * 1000.0
+        ) / (
+            {{ safe_sum([
+                'meta_mx_impressions',
+                'meta_non_mx_impressions',
+                'pinterest_impressions',
+                'reddit_impressions'
+            ]) }}
         )
     end as cpm_usd
 

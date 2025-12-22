@@ -1,0 +1,30 @@
+# models/platform_config.yml
+
+platforms:
+  meta_mx:
+    cost: meta_mx_cost_usd
+    impressions: meta_mx_impressions
+    clicks: meta_mx_clicks
+    conversions: meta_mx_conversions
+    revenue: meta_mx_revenue_usd
+
+  meta_non_mx:
+    cost: meta_non_mx_cost_usd
+    impressions: meta_non_mx_impressions
+    clicks: meta_non_mx_clicks
+    conversions: meta_non_mx_conversions
+    revenue: meta_non_mx_revenue_usd
+
+  pinterest:
+    cost: pinterest_cost_usd
+    impressions: pinterest_impressions
+    clicks: pinterest_clicks
+    conversions: pinterest_conversions
+    revenue: pinterest_revenue_usd
+
+  reddit:
+    cost: reddit_cost_usd
+    impressions: reddit_impressions
+    clicks: reddit_clicks
+    conversions: reddit_conversions
+    revenue: reddit_revenue_usd
