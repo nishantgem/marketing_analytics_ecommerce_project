@@ -1,0 +1,19 @@
+version: 2
+
+models:
+  - name: prep_unified_social_metrics
+    description: "Unified cleaned social data across Meta MX, Meta Non-MX, Pinterest, Reddit"
+    columns:
+      - name: date
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "date >= '2000-01-01'"
+
+      - name: campaign_id
+        tests:
+          - not_null
+
+      - name: platform
+        tests:
+          - not_null

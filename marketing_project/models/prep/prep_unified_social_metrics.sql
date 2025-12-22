@@ -22,10 +22,10 @@ unified as (
         -- Join keys
         coalesce(mx.campaign_id, mn.campaign_id, p.campaign_id, r.campaign_id) as campaign_id,
 
-        -- FIXED: Convert nanoseconds → seconds → timestamp → date (Postgres)
+        -- Date (already fixed in Python)
         coalesce(mx.date, mn.date, p.date, r.date)::date as date,
 
-        -- Core metadata (from your column list)
+        -- Metadata
         coalesce(mx.platform, mn.platform, p.platform, r.platform) as platform,
         coalesce(mx.funding_source_fs, mn.funding_source_fs, p.funding_source_fs, r.funding_source_fs) as funding_source_fs,
         coalesce(mx.kpi_pk, mn.kpi_pk, p.kpi_pk, r.kpi_pk) as kpi_pk,
@@ -37,7 +37,7 @@ unified as (
         coalesce(mx.division_bs, mn.division_bs, p.division_bs, r.division_bs) as division_bs,
         coalesce(mx.campaign_name_cn, mn.campaign_name_cn, p.campaign_name_cn, r.campaign_name_cn) as campaign_name_cn,
 
-        -- Optional high‑level attributes you mentioned (if present in staging)
+        -- Optional metadata
         coalesce(mx.media_channel_ch, mn.media_channel_ch, p.media_channel_ch, r.media_channel_ch) as media_channel_ch,
         coalesce(mx.type, mn.type, p.type, r.type) as type,
         coalesce(mx.platform_pl, mn.platform_pl, p.platform_pl, r.platform_pl) as platform_pl,
@@ -47,43 +47,38 @@ unified as (
         coalesce(mx.mindset_md, mn.mindset_md, p.mindset_md, r.mindset_md) as mindset_md,
         coalesce(mx.business_activity, mn.business_activity, p.business_activity, r.business_activity) as business_activity,
 
-        -- Meta MX metrics
+        -- Metrics
         mx.cost_usd as meta_mx_cost_usd,
-        mx.impressions as meta_mx_impressions,
-        mx.clicks as meta_mx_clicks,
-        mx.total_conversions as meta_mx_conversions,
-        mx.total_conversion_revenue_usd as meta_mx_revenue_usd,
-
-        -- Meta Non-MX metrics
         mn.cost_usd as meta_non_mx_cost_usd,
-        mn.impressions as meta_non_mx_impressions,
-        mn.clicks as meta_non_mx_clicks,
-        mn.total_conversions as meta_non_mx_conversions,
-        mn.total_conversion_revenue_usd as meta_non_mx_revenue_usd,
-
-        -- Pinterest metrics
         p.cost_usd as pinterest_cost_usd,
-        p.impressions as pinterest_impressions,
-        p.clicks as pinterest_clicks,
-        p.total_conversions as pinterest_conversions,
-        p.total_conversion_revenue_usd as pinterest_revenue_usd,
-
-        -- Reddit metrics
         r.cost_usd as reddit_cost_usd,
+
+        mx.impressions as meta_mx_impressions,
+        mn.impressions as meta_non_mx_impressions,
+        p.impressions as pinterest_impressions,
         r.impressions as reddit_impressions,
+
+        mx.clicks as meta_mx_clicks,
+        mn.clicks as meta_non_mx_clicks,
+        p.clicks as pinterest_clicks,
         r.clicks as reddit_clicks,
+
+        mx.total_conversions as meta_mx_conversions,
+        mn.total_conversions as meta_non_mx_conversions,
+        p.total_conversions as pinterest_conversions,
         r.total_conversions as reddit_conversions,
+
+        mx.total_conversion_revenue_usd as meta_mx_revenue_usd,
+        mn.total_conversion_revenue_usd as meta_non_mx_revenue_usd,
+        p.total_conversion_revenue_usd as pinterest_revenue_usd,
         r.total_conversion_revenue_usd as reddit_revenue_usd
 
     from meta_mx mx
     full outer join meta_non_mx mn
-        on mx.campaign_id = mn.campaign_id
-        and mx.date = mn.date
-
+        on mx.campaign_id = mn.campaign_id and mx.date = mn.date
     full outer join pinterest p
         on coalesce(mx.campaign_id, mn.campaign_id) = p.campaign_id
         and coalesce(mx.date, mn.date) = p.date
-
     full outer join reddit r
         on coalesce(mx.campaign_id, mn.campaign_id, p.campaign_id) = r.campaign_id
         and coalesce(mx.date, mn.date, p.date) = r.date
