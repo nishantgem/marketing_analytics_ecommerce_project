@@ -22,12 +22,10 @@ unified as (
         -- Join keys
         coalesce(mx.campaign_id, mn.campaign_id, p.campaign_id, r.campaign_id) as campaign_id,
 
-        -- FIXED: Convert nanoseconds → microseconds → timestamp → date
-        date(
-            timestamp_micros(
-                coalesce(mx.date, mn.date, p.date, r.date) / 1000
-            )
-        ) as date,
+        -- FIXED: Convert nanoseconds → seconds → timestamp → date (Postgres)
+        to_timestamp(
+            coalesce(mx.date, mn.date, p.date, r.date) / 1000000000
+        )::date as date,
 
         -- Platform identifiers
         mx.platform as meta_mx_platform,
@@ -57,4 +55,27 @@ unified as (
         p.total_conversion_revenue_usd as pinterest_revenue_usd,
 
         -- Reddit metrics
-        r.cost_us)
+        r.cost_usd as reddit_cost_usd,
+        r.impressions as reddit_impressions,
+        r.clicks as reddit_clicks,
+        r.total_conversions as reddit_conversions,
+        r.total_conversion_revenue_usd as reddit_revenue_usd,
+
+        -- Campaign name
+        coalesce(mx.campaign_name, mn.campaign_name, p.campaign_name, r.campaign_name) as campaign_name
+
+    from meta_mx mx
+    full outer join meta_non_mx mn
+        on mx.campaign_id = mn.campaign_id
+        and mx.date = mn.date
+
+    full outer join pinterest p
+        on coalesce(mx.campaign_id, mn.campaign_id) = p.campaign_id
+        and coalesce(mx.date, mn.date) = p.date
+
+    full outer join reddit r
+        on coalesce(mx.campaign_id, mn.campaign_id, p.campaign_id) = r.campaign_id
+        and coalesce(mx.date, mn.date, p.date) = r.date
+)
+
+select * from unified
